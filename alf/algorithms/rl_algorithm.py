@@ -447,6 +447,26 @@ class RLAlgorithm(Algorithm):
             if len(field) == 1:
                 summary_utils.summarize_distribution("action_dist", field[0])
 
+    @alf.configurable(whitelist=["custom_summary"])
+    def summarize_play(
+            self,
+            experience: Experience,
+            custom_summary: Optional[Callable[[Experience], None]] = None):
+        """Generate summaries for play or evaluate.
+
+        Args:
+            experience: experience of one step rollout in the environment during 
+            play or evaluation, this is in contrast to the experience input to 
+            ``summarize_rollout`` where a sequence of multiple rollout steps
+            are collected.
+            custom_summary: when specified it is a function that will be called every
+               time when this ``summarize_play`` hook is called. This provides
+               a convenient way for the user to customize ``summarize_play`` from
+               ALF configs.
+        """
+        if custom_summary is not None:
+            custom_summary(experience)
+
     def summarize_metrics(self):
         """Generate summaries for metrics ``AverageEpisodeLength``,
         ``AverageReturn``, etc.

@@ -36,7 +36,7 @@ from alf.networks import Network
 from alf.algorithms.config import TrainerConfig
 from alf.algorithms.data_transformer import (create_data_transformer,
                                              IdentityDataTransformer)
-from alf.data_structures import StepType
+from alf.data_structures import StepType, make_experience
 from alf.environments.utils import create_environment
 from alf.nest import map_structure
 from alf.tensor_specs import TensorSpec
@@ -980,6 +980,8 @@ def _step(algorithm,
         time.sleep(sleep_time_per_step)
 
     next_time_step = env.step(policy_step.output)
+    experience = make_experience(time_step.cpu(), policy_step, policy_state)
+    algorithm.summarize_play(experience)
 
     return next_time_step, policy_step, trans_state
 
