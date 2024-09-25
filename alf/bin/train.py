@@ -83,7 +83,8 @@ def _define_flags():
         'distributed', 'none', ['none', 'multi-gpu', 'multi-node-multi-gpu'],
         'Set whether and how to run trainning in distributed mode.')
     flags.mark_flag_as_required('root_dir')
-    flags.DEFINE_integer('local-rank', None, 'Local rank passed from distributed launcher')
+    flags.DEFINE_integer('local-rank', None,
+                         'Local rank passed from distributed launcher')
 
 
 FLAGS = flags.FLAGS
@@ -211,8 +212,7 @@ def training_worker(rank: int,
         alf.close_env()
 
 
-
-def training_worker_multi_node(local_rank: int, 
+def training_worker_multi_node(local_rank: int,
                                rank: int,
                                world_size: int,
                                conf_file: str,
@@ -251,7 +251,11 @@ def training_worker_multi_node(local_rank: int,
 
         # Parse the configuration file, which will also implicitly bring up the environments.
         common.parse_conf_file(conf_file)
-        _train(root_dir=root_dir, local_rank=local_rank, rank=rank, world_size=world_size)
+        _train(
+            root_dir=root_dir,
+            local_rank=local_rank,
+            rank=rank,
+            world_size=world_size)
     except KeyboardInterrupt:
         pass
     except Exception as e:
@@ -323,13 +327,14 @@ def main(_):
             # again. But we raise another error so that we will have a correct
             # exit code for the program.
             raise ChildProcessError(f'Training failed on subprocess exception')
-        
+
     elif FLAGS.distributed == 'multi-node-multi-gpu':
         local_rank = int(os.environ['LOCAL_RANK'])
         rank = int(os.environ['RANK'])
         world_size = int(os.environ['WORLD_SIZE'])
-        print("local_rank: {} | rank: {} | world_size: {}".format(local_rank, rank, world_size))
-        
+        print("local_rank: {} | rank: {} | world_size: {}".format(
+            local_rank, rank, world_size))
+
         if world_size == 1:
             logging.warn(
                 'Fallback to single GPU mode as there is only one GPU')
@@ -342,12 +347,13 @@ def main(_):
             # in different work processes.
             manager = mp.Manager()
             paras_queue = manager.Queue()
-            training_worker_multi_node(local_rank=local_rank, 
-                                       rank=rank, 
-                                       world_size=world_size,
-                                       conf_file=conf_file,
-                                       root_dir=root_dir, 
-                                       paras_queue=paras_queue)
+            training_worker_multi_node(
+                local_rank=local_rank,
+                rank=rank,
+                world_size=world_size,
+                conf_file=conf_file,
+                root_dir=root_dir,
+                paras_queue=paras_queue)
         except KeyboardInterrupt:
             pass
         except Exception as e:
